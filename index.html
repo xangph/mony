@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f7148">
+  <title>PromoFlow</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700;800&display=swap');
+    :root{--g:#0f7148;--g2:#15965e;--ink:#17231e;--muted:#6b756f;--mint:#e8f6ef;--line:#dfe6e2;--bg:#f7f5ef;--red:#b82e2e}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans Lao',sans-serif}button,input{font:inherit}.hidden{display:none!important}.shell{max-width:1120px;margin:auto;padding:18px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 10px 30px #183c2c0d}.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:var(--g);color:#fff}.secondary{background:var(--mint);color:var(--g)}.danger{background:#fff0f0;color:var(--red)}.wide{width:100%}.muted{color:var(--muted)}
+    #loginView{min-height:calc(100vh - 36px);display:grid;grid-template-columns:1.05fr .95fr;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 18px 55px #1431251f}.login-hero{padding:58px;background:linear-gradient(145deg,#0c6842,#15965e);color:#fff;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}.login-hero:after{content:"";position:absolute;width:360px;height:360px;border:70px solid #ffffff12;border-radius:50%;right:-145px;bottom:-155px}.login-hero h1{font-size:42px;line-height:1.35;margin:70px 0 16px}.login-hero p{line-height:1.85;color:#dff5ea}.login{width:100%;padding:64px;display:flex;flex-direction:column;justify-content:center}.brand{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:800}.logo{width:46px;height:46px;border-radius:14px;background:var(--g);color:#fff;display:grid;place-items:center}.login .brand{margin-bottom:26px}.field{margin:15px 0}.field label{display:block;font-size:14px;font-weight:700;margin-bottom:7px}.field input{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 14px}.error{background:#fff0f0;color:#9b2020;border-radius:10px;padding:11px;margin:12px 0}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.user{display:flex;align-items:center;gap:11px}.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--mint);color:var(--g);font-weight:800}.hero{background:linear-gradient(120deg,var(--g),var(--g2));color:#fff;border-radius:20px;padding:26px;margin-bottom:20px}.hero h1{margin:0 0 5px;font-size:25px}.hero p{margin:0;color:#dff3e9}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.promo h2{font-size:19px;margin:12px 0 7px}.promo-icon{width:48px;height:48px;border-radius:14px;background:var(--mint);color:var(--g);display:grid;place-items:center;font-weight:800;font-size:19px}.pill{display:inline-block;background:var(--mint);color:var(--g);border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;margin:12px 5px 15px 0}.status{padding:13px;border-radius:12px;background:#edf9f2;color:var(--g);margin-bottom:16px}.toast{position:fixed;right:18px;bottom:18px;background:#17231e;color:#fff;border-radius:11px;padding:12px 17px}
+    .back{margin-bottom:14px}.note{background:#fff8dc;border:1px solid #eadb98;border-radius:13px;padding:15px;margin-bottom:16px}.import{background:#f5faf7;border:1px dashed #92bda8;border-radius:15px;padding:18px;margin-bottom:18px}.import textarea,.note textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit;margin:8px 0}.import textarea{font-family:Arial,sans-serif}.manual-form{margin-bottom:18px}.manual-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}.manual-fields .field{margin:0}.manual-fields input{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 14px}.summary{margin-bottom:18px}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.metric{background:var(--mint);border-radius:13px;padding:14px}.metric b{display:block;font-size:22px;color:var(--g)}.staff-total{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}.week-action,.history-entry{display:flex;align-items:center;justify-content:space-between;gap:18px;border-radius:18px;padding:20px 22px;margin-bottom:18px}.week-buttons{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.week-action{background:#fff4e8;border:1px solid #f1c897}.history-entry{background:#eef3ff;border:1px solid #cbd7f4}.week-action h3,.history-entry h3{margin:0 0 5px}.week-action p,.history-entry p{margin:0;color:var(--muted);font-size:13px}.all-totals{margin:18px 0}.tile-stats{display:flex;gap:7px;flex-wrap:wrap}.total-pill{background:#dff4e8;color:#08613b}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}.data{width:100%;border-collapse:collapse;font-size:13px}.data th,.data td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.data th{background:#e8f0ec}.negative{color:#d52b2b;font-weight:700}.confirm-box{display:flex;align-items:center;gap:7px}.confirm-box select{min-width:125px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff}.confirm-box .btn{padding:8px 11px}.done{color:var(--g);font-weight:700}.empty{text-align:center;padding:30px;color:var(--muted)}.side-btn,.password-side-btn{position:fixed;top:42%;z-index:11;border:0;color:#fff;padding:14px 11px;writing-mode:vertical-rl;font-weight:700;cursor:pointer}.side-btn{left:0;border-radius:0 13px 13px 0;background:var(--g)}.password-side-btn{right:0;border-radius:13px 0 0 13px;background:#293d75}.shade,.password-shade{display:none;position:fixed;inset:0;background:#071a12a8;z-index:15}.shade.open,.password-shade.open{display:block}.sidebar,.password-drawer{position:fixed;top:0;bottom:0;width:min(420px,92vw);background:#fff;z-index:16;padding:22px;box-shadow:15px 0 45px #0002;transition:.25s;overflow:auto}.sidebar{left:-430px}.sidebar.open{left:0}.password-drawer{right:-430px}.password-drawer.open{right:0}.side-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.close{border:0;background:var(--mint);width:38px;height:38px;border-radius:10px;font-size:22px}.nav{display:grid;gap:9px}.nav button{text-align:left}.form-card{max-width:620px;margin:auto}.form-card input{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 14px}.staff-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.alert-overlay{position:fixed;inset:0;background:#0a1812ba;display:grid;place-items:center;padding:20px;z-index:999}.alert-modal{width:min(480px,100%);background:#fff;border-radius:24px;padding:32px;text-align:center;box-shadow:0 30px 90px #0006}.alert-bell{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;background:#fff0d5;font-size:44px}.alert-modal h2{color:var(--g);font-size:26px}.alert-modal .btn{width:100%;font-size:17px}
+    .copy-set-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.copy-set-card{display:flex;flex-direction:column;gap:14px}.copy-set-card pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit;line-height:1.75;background:#f5faf7;border:1px solid var(--line);border-radius:13px;padding:15px;min-height:150px}.copy-set-number{width:44px;height:36px;border-radius:10px;background:var(--mint);color:var(--g);display:grid;place-items:center;font-weight:800}.copy-set-head,.copy-set-actions{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}.copy-set-admin textarea{width:100%;min-height:210px;border:1px solid var(--line);border-radius:12px;padding:13px;font:inherit;line-height:1.7}
+    @media(max-width:760px){#loginView{grid-template-columns:1fr}.login-hero{display:none}.login{padding:32px 24px;min-height:calc(100vh - 24px)}.grid,.summary-grid,.manual-fields,.copy-set-grid{grid-template-columns:1fr}.shell{padding:11px}.who{display:none}.hero h1{font-size:21px}.week-action,.history-entry{align-items:stretch;flex-direction:column}.week-buttons{display:grid;grid-template-columns:1fr}.week-action .btn,.history-entry .btn{width:100%}}
+    /* ເກັບຟັງຊັນອາທິດໄວ້ໃນເມນູຂ້າງ ເພື່ອໃຫ້ໜ້າຫຼັກບໍ່ລົກ. */
+    .week-action,.history-entry{display:none}
+  
+/* Comfortable branch selectors on desktop and mobile. */
+select{min-height:48px;padding:11px 44px 11px 16px;border:2px solid #90cbb1;border-radius:12px;background-color:#effaf4;color:#075b3d;font-family:inherit;font-size:16px;font-weight:700;line-height:1.5;cursor:pointer;box-shadow:0 3px 10px #0b6b4a12;transition:border-color .15s,box-shadow .15s;max-width:100%;color-scheme:light}
+select:hover{border-color:#138657;background-color:#e4f6ec}
+select:focus-visible{outline:3px solid #74cfa5;outline-offset:3px;border-color:#087447;box-shadow:0 0 0 5px #0b6b4a12}
+select:disabled{opacity:.6;cursor:not-allowed}
+select option{background:#fff;color:#123e2d;font-weight:500}
+.staff-row select{width:min(100%,360px);flex-shrink:1}
+@media(max-width:600px){.staff-row:has(select){flex-wrap:wrap;gap:10px}.staff-row select{width:100%;flex-basis:100%}}
+
+</style>
+</head>
+<body>
+<main class="shell">
+  <section id="loginView">
+    <div class="login-hero"><div><div class="brand"><span class="logo">%</span> PromoFlow</div><h1>ຈັດການໂປຣໂມຊັນ<br>ໃຫ້ງ່າຍຂຶ້ນ</h1><p>ສົ່ງໂປຣໂມຊັນໃຫ້ທີມງານ ແລະຕິດຕາມການຢືນຢັນໃນບ່ອນດຽວ</p></div><small>Weekly promotion management</small></div>
+    <form id="loginForm" class="card login">
+      <div class="brand"><span class="logo">✓</span> PromoFlow</div>
+      <h1>ເຂົ້າສູ່ລະບົບ</h1>
+      <p class="muted">ໃຊ້ຊື່ຜູ້ໃຊ້ ແລະລະຫັດຜ່ານ ຫຼື Email ເກົ່າ</p>
+      <div id="loginError" class="error hidden"></div>
+      <div class="field"><label>ຊື່ຜູ້ໃຊ້ / Email</label><input id="email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+      <div class="field"><label>ລະຫັດຜ່ານ</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button id="loginButton" class="btn primary wide">ເຂົ້າລະບົບ</button>
+    </form>
+  </section>
+  <section id="appView" class="hidden">
+    <header>
+      <div class="brand"><span class="logo">✓</span> PromoFlow</div>
+      <div class="user"><div class="who"><small id="roleName" class="muted"></small></div><button id="logoutButton" class="btn danger">ອອກລະບົບ</button></div>
+    </header>
+    <div id="content"></div>
+    <button class="side-btn" onclick="toggleSidebar(true)">☰ ເມນູ</button>
+    <div id="shade" class="shade" onclick="toggleSidebar(false)"></div>
+    <aside id="sidebar" class="sidebar"><div class="side-head"><div class="brand"><span class="logo">✓</span> ເມນູ</div><button class="close" onclick="toggleSidebar(false)">×</button></div><nav class="nav"><button class="btn secondary" onclick="navigate('home')">🏠 ໜ້າຫຼັກ</button><button class="btn secondary" onclick="navigate('copysets')">📋 ຂໍ້ມູນສົ່ງລູກຄ້າ</button><button id="staffNav" class="btn secondary" onclick="navigate('staff')">👥 ຈັດການພະນັກງານ</button><button id="newWeekNav" class="btn secondary" onclick="createNewWeek()">🗓️ ສ້າງອາທິດໃໝ່</button><details><summary style="padding:13px 16px;border-radius:11px;background:#e8f6ef;color:#0f7148;font-weight:700;cursor:pointer">📁 ປະຫວັດ</summary><div style="display:grid;gap:7px;margin:8px 0 0 14px;padding-left:10px;border-left:3px solid #b4dac6"><button class="btn secondary" onclick="navigate('history')">📅 ປະຫວັດອາທິດກ່ອນ</button><button class="btn secondary" onclick="openDailyFinanceHistory()">🗂️ ປະຫວັດລາຍວັນ</button><button class="btn secondary" onclick="openTransferHistory()">📒 ປະຫວັດເຕີມ–ຖອນເງິນແລະເຄດິດ</button></div></details><button class="btn secondary" onclick="openFinance()">🛒 ລາຍງານຄ່າໃຊ້ຈ່າຍ</button><button class="btn danger" onclick="client.auth.signOut()">ອອກຈາກລະບົບ</button></nav></aside>
+    <button class="password-side-btn" onclick="togglePasswordDrawer(true)">🔐 ລະຫັດຜ່ານ</button><div id="passwordShade" class="password-shade" onclick="togglePasswordDrawer(false)"></div><aside id="passwordDrawer" class="password-drawer"><div class="side-head"><div class="brand">🔐 ຈັດການລະຫັດຜ່ານ</div><button class="close" onclick="togglePasswordDrawer(false)">×</button></div><div id="passwordContent"></div></aside>
+  </section>
+</main>
+<div id="toast" class="toast hidden"></div>
+<script>
+const SUPABASE_URL='https://sytvktwgaxokwripenvd.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_XILath1IrxTxXfgYMjztbQ_821NXG_j';
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+let state={session:null,profile:null,weeks:[],week:null,promotions:[],weekPromotions:[],rows:[],confirmations:[],profiles:[],staffMembers:[],branches:[],notifications:[],notificationReads:[],copySets:[],financeHistory:[],page:'home',selected:null,historySelected:null};
+const requestedPage=new URLSearchParams(location.search).get('page');
+if(['home','copysets','history','staff','password'].includes(requestedPage))state.page=requestedPage;
+let alertTimer=null,alertAudio=null,pollTimer=null;
+let financeLandingAfterLogin=false;
+let pendingMenuRoute=true;
+function toast(message){const el=$('#toast');el.textContent=message;el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),2500)}
+function showLogin(){state.session=null;state.profile=null;$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden')}
+function icon(code){return code==='LOSS_RETURN_5'?'5%':code==='FREE_SPIN'?'↻':'100+'}
+function showError(message){const el=$('#loginError');el.textContent=message;el.classList.remove('hidden')}
+
+$('#loginForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  $('#loginError').classList.add('hidden');
+  $('#loginButton').disabled=true;
+  try{
+    financeLandingAfterLogin=true;
+    const {error}=await client.auth.signInWithPassword({email:window.PromoFlowBranchLogin.emailForLogin($('#email').value),password:$('#password').value});
+    if(!error)return;
+    financeLandingAfterLogin=false;
+    if(error.code==='invalid_credentials')showError('ຊື່ຜູ້ໃຊ້ ຫຼືລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ (invalid_credentials)');
+    else showError('ເຂົ້າລະບົບບໍ່ສຳເລັດ ('+(error.code||error.name||error.status||'auth error')+')');
+  }catch{
+    financeLandingAfterLogin=false;
+    showError('ຕິດຕໍ່ Supabase ບໍ່ໄດ້');
+  }finally{
+    $('#loginButton').disabled=false;
+  }
+});
+$('#logoutButton').addEventListener('click',()=>client.auth.signOut());
+
+async function boot(session){state.session=session;const {data:profile,error}=await client.from('profiles').select('*').eq('id',session.user.id).single();if(error||!profile){showError('ບໍ່ພົບ Profile ຂອງ User');await client.auth.signOut();return}if(!profile.active){showError('ບັນຊີນີ້ຖືກປິດ');await client.auth.signOut();return}state.profile=profile;await selectBranch();if(financeLandingAfterLogin){financeLandingAfterLogin=false;location.replace('finance/index.html');return}await loadData();$('#loginView').classList.add('hidden');$('#appView').classList.remove('hidden');$('#roleName').textContent=profile.role==='admin'?'Admin':'ພະນັກງານ';$('#staffNav').classList.toggle('hidden',profile.role!=='admin');$('#newWeekNav').classList.remove('hidden');renderPasswordDrawer();if(state.page==='staff'&&profile.role!=='admin')state.page='home';render();if(pendingMenuRoute){pendingMenuRoute=false;if(requestedPage==='branches'&&profile.role==='admin')await openBranchAdmin();if(requestedPage==='newweek')createNewWeek();}checkUnreadNotification();startNotificationPolling()}
+async function loadData(){const a=await Promise.all([client.from('promo_weeks').select('*').eq('branch_id',state.branchId).order('starts_at',{ascending:false}),client.from('promotions').select('*').eq('active',true).order('created_at'),client.from('week_promotions').select('*'),client.from('promotion_rows').select('*').order('created_at'),client.from('confirmations').select('*'),client.from('profiles').select('*').order('created_at'),client.from('staff_members').select('*').eq('branch_id',state.branchId).order('created_at'),client.from('notifications').select('*').order('created_at',{ascending:false}),client.from('notification_reads').select('*'),client.from('promo_copy_sets').select('*').eq('branch_id',state.branchId).order('sort_order').order('created_at'),client.from('finance_week_history').select('*').order('captured_at',{ascending:false})]);const bad=a.find(x=>x.error);if(bad)throw bad.error;state.weeks=a[0].data;state.week=state.weeks.find(w=>w.status==='active');state.promotions=a[1].data;state.weekPromotions=a[2].data;state.rows=a[3].data;state.confirmations=a[4].data;state.profiles=a[5].data;state.staffMembers=a[6].data;state.notifications=a[7].data;state.notificationReads=a[8].data;state.copySets=a[9].data;state.financeHistory=a[10].data}
+function render(){if(state.page==='promo')return renderPromo();if(state.page==='staff')return renderStaff();if(state.page==='branches')return renderBranches();if(state.page==='history')return renderHistory();if(state.page==='copysets')return renderCopySets();if(state.page==='password')return renderPassword();renderHome()}
+function toggleSidebar(open){$('#sidebar').classList.toggle('open',open);$('#shade').classList.toggle('open',open)}
+function openFinance(){toggleSidebar(false);location.href='finance/index.html'}
+async function selectBranch(){
+  state.branchId=state.profile.branch_id;
+  document.getElementById('branchPicker')?.remove();
+  if(state.profile.role!=='admin')return;
+  const {data,error}=await client.from('branches').select('id,name').eq('active',true).order('name');
+  if(error)return toast(error.message);
+  const saved=sessionStorage.getItem('promoflow.activeBranch');
+  if(data.some(branch=>branch.id===saved))state.branchId=saved;
+  const picker=document.createElement('select');
+  picker.id='branchPicker';
+  picker.setAttribute('aria-label','ເລືອກສາຂາ');
+  picker.add(new Option('ເລືອກສາຂາ',''));
+  for(const branch of data)picker.add(new Option(branch.name,branch.id));
+  picker.value=state.branchId||'';
+  picker.onchange=()=>{
+    if(!picker.value)return;
+    sessionStorage.setItem('promoflow.activeBranch',picker.value);
+    localStorage.removeItem(('promoflow_grand_total:'+state.branchId));
+    location.reload();
+  };
+  document.querySelector('#sidebar nav').prepend(picker);
+}
+function openDailyFinanceHistory(){toggleSidebar(false);location.href='finance/daily-history.html'}
+function openTransferHistory(){toggleSidebar(false);location.href='finance/transfer-history.html'}
+function togglePasswordDrawer(open){$('#passwordDrawer').classList.toggle('open',open);$('#passwordShade').classList.toggle('open',open)}
+function navigate(page){toggleSidebar(false);state.page=page;state.selected=null;render();scrollTo(0,0)}
+function goHome(){state.page='home';state.selected=null;render();scrollTo(0,0)}
+function copySetUrl(content){const match=String(content||'').match(/https?:\/\/[^\s]+/i);return match?match[0].replace(/[),.;]+$/,''):''}
+function safeWebUrl(url){try{const parsed=new URL(url);return /^https?:$/.test(parsed.protocol)?parsed.href:'#'}catch(_){return '#'}}
+function renderCopySets(){const admin=state.profile.role==='admin';$('#content').innerHTML=`<button class="btn secondary back" onclick="navigate('home')">← ກັບຄືນ</button><div class="hero"><h1>📋 ຂໍ້ມູນສົ່ງລູກຄ້າ</h1><p>${admin?'Admin ສາມາດວາງຫຼາຍຊຸດ ແກ້ໄຂ ແລະລຶບໄດ້':'ກົດກ໊ອບປີ້ທັງຊຸດ ແລ້ວນຳໄປວາງໃນ WhatsApp'}</p></div>${admin?`<form class="card copy-set-admin" style="margin-bottom:18px" onsubmit="importCopySets(event)"><h2>➕ ເພີ່ມຂໍ້ມູນຫຼາຍຊຸດ</h2><p class="muted">ໃສ່ເລກ 01, 02, 03… ໄວ້ໜ້າແຕ່ລະຊຸດ. ລະບົບຈະແຍກໃຫ້ອັດຕະໂນມັດ.</p><textarea name="batch" required placeholder="01 https://...&#10;ຢູ່ເຊື່: ...&#10;ລະຫັດ: ...&#10;ຄຳແນະນຳ...&#10;&#10;02 https://..."></textarea><button class="btn primary" style="margin-top:10px">ບັນທຶກທຸກຊຸດ</button></form>`:''}${state.copySets.length?`<div class="copy-set-grid">${state.copySets.map((item,index)=>copySetCard(item,index,admin)).join('')}</div>`:'<div class="card empty">ຍັງບໍ່ມີຂໍ້ມູນ</div>'}`}
+function copySetCard(item,index,admin){const url=copySetUrl(item.content),number=String(index+1).padStart(2,'0');return `<article class="card copy-set-card"><div class="copy-set-head"><span class="copy-set-number">${number}</span>${url?`<a class="btn secondary" href="${esc(safeWebUrl(url))}" target="_blank" rel="noopener">ເຂົ້າເວັບ ↗</a>`:''}</div><pre>${esc(item.content)}</pre><div class="copy-set-actions"><button class="btn primary" onclick="copyWholeSet('${item.id}')">📋 ກ໊ອບປີ້ທັງຊຸດ</button>${admin?`<span><button class="btn secondary" onclick="editCopySet('${item.id}')">ແກ້ໄຂ</button> <button class="btn danger" onclick="deleteCopySet('${item.id}')">ລຶບ</button></span>`:''}</div></article>`}
+function parseCopySetBatch(text){const clean=String(text||'').replace(/\r/g,'').trim();if(!clean)return[];const numbered=clean.split(/(?:^|\n\s*|\s{2,})(?=\d{2,3}\s+https?:\/\/)/g).map(x=>x.replace(/^\d{2,3}\s+/,'').trim()).filter(Boolean);return numbered.length>1?numbered:[clean.replace(/^\d{2,3}\s+/,'').trim()]}
+async function importCopySets(event){event.preventDefault();if(state.profile.role!=='admin')return toast('ສະເພາະ Admin ເທົ່ານັ້ນ');const sets=parseCopySetBatch(event.target.batch.value);if(!sets.length)return toast('ບໍ່ພົບຂໍ້ມູນ');if(!confirm(`ຢືນຢັນເພີ່ມ ${sets.length} ຊຸດບໍ?`))return;const start=state.copySets.reduce((max,x)=>Math.max(max,Number(x.sort_order)||0),0)+1,{error}=await client.from('promo_copy_sets').insert(sets.map((content,index)=>({content,sort_order:start+index,created_by:state.profile.id,branch_id:state.branchId})));if(error)return toast(`ບັນທຶກບໍ່ສຳເລັດ: ${error.message}`);event.target.reset();await reloadData();toast(`ເພີ່ມ ${sets.length} ຊຸດແລ້ວ`)}
+async function copyWholeSet(id){const item=state.copySets.find(x=>x.id===id);if(!item)return;try{await navigator.clipboard.writeText(item.content)}catch(_){const area=document.createElement('textarea');area.value=item.content;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}toast('ກ໊ອບປີ້ທັງຊຸດແລ້ວ')}
+async function editCopySet(id){if(state.profile.role!=='admin')return;const item=state.copySets.find(x=>x.id===id);if(!item)return;const content=prompt('ແກ້ໄຂຂໍ້ມູນຊຸດນີ້:',item.content);if(!content?.trim()||content===item.content)return;const {error}=await client.from('promo_copy_sets').update({content:content.trim(),updated_at:new Date().toISOString()}).eq('id',id);if(error)return toast(error.message);await reloadData();toast('ແກ້ໄຂແລ້ວ')}
+async function deleteCopySet(id){if(state.profile.role!=='admin')return;const item=state.copySets.find(x=>x.id===id);if(!item||!confirm('ຢືນຢັນລຶບຂໍ້ມູນຊຸດນີ້ບໍ?'))return;const {error}=await client.from('promo_copy_sets').delete().eq('id',id);if(error)return toast(error.message);await reloadData();toast('ລຶບແລ້ວ')}
+function openPromo(id){if(!state.week){createNewWeek();return;}state.page='promo';state.selected=id;render();scrollTo(0,0)}
+function currentWP(id){return state.weekPromotions.find(x=>x.week_id===state.week?.id&&x.promotion_id===id)}
+function weekWP(weekId,promoId){return state.weekPromotions.find(x=>x.week_id===weekId&&x.promotion_id===promoId)}
+function renderHome(){const admin=state.profile.role==='admin';$('#content').innerHTML=`<div class="hero"><h1>${admin?'ໜ້າຄວບຄຸມ Admin':'ໜ້າພະນັກງານ'}</h1><p>${esc(state.week?.label||'ຍັງບໍ່ມີອາທິດທີ່ເປີດໃຊ້')}</p></div><div class="week-action"><div><h3>📅 ຈັດການໂປຣປະຈຳອາທິດ</h3><p>ບັນທຶກອາທິດເກົ່າໄປປະຫວັດ ແລະເລີ່ມຕາຕະລາງໃໝ່</p></div><div class="week-buttons"><button class="btn secondary" onclick="openFinance()">🛒 ລາຍງານຄ່າໃຊ້ຈ່າຍ</button><button class="btn primary" onclick="createNewWeek()">＋ ເລີ່ມໂປຣອາທິດໃໝ່</button></div></div><div class="history-entry"><div><h3>🗂️ ປະຫວັດອາທິດກ່ອນ</h3><p>ເບິ່ງຍອດລວມ ໝາຍເຫດ ແລະຜົນງານພະນັກງານ</p></div><button class="btn secondary" onclick="navigate('history')">ເບິ່ງປະຫວັດ →</button></div><div class="toolbar"><button class="btn secondary" onclick="reloadData()">↻ ໂຫຼດໃໝ່</button></div><div class="grid">${state.promotions.map(p=>{const wp=currentWP(p.id),rows=state.rows.filter(r=>r.week_promotion_id===wp?.id),confirmed=rows.map(r=>({r,c:state.confirmations.find(c=>c.row_id===r.id)})).filter(x=>x.c),total=confirmed.reduce((s,x)=>s+promoAmount(p,x.r),0);return `<article class="card promo"><div class="promo-icon">${icon(p.code)}</div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description)}</p><div class="tile-stats"><span class="pill">${rows.length} ລາຍການ</span><span class="pill">ຢືນຢັນ ${confirmed.length}</span><span class="pill total-pill ${total<0?'negative':''}">ຍອດລວມ: ${total.toLocaleString()}</span></div><button class="btn primary wide" onclick="openPromo('${p.id}')">${admin?'ເຂົ້າໄປເບິ່ງ':'ເຂົ້າໄປຢືນຢັນ'} →</button></article>`}).join('')}</div>${allPeopleTotals()}`}
+function allPeopleTotals(){const members=state.staffMembers,values=members.map(person=>{const byPromo={};let total=0;for(const promo of state.promotions){const wp=currentWP(promo.id),rows=state.rows.filter(r=>r.week_promotion_id===wp?.id),amount=rows.reduce((sum,row)=>{const c=state.confirmations.find(c=>c.row_id===row.id&&c.staff_member_id===person.id);return sum+(c?promoAmount(promo,row):0)},0);byPromo[promo.id]=amount;total+=Math.abs(amount)}return{person,byPromo,total}}),grandTotal=values.reduce((sum,v)=>sum+v.total,0);localStorage.setItem(('promoflow_grand_total:'+state.branchId),String(grandTotal));return `<section class="card all-totals"><h2>👥 ຍອດລວມຂອງທຸກຄົນ (Total)</h2><p class="muted">ສະແດງຍອດແຍກຕາມຊື່ທີ່ພະນັກງານເລືອກ</p><div class="table-wrap"><table class="data"><thead><tr><th>ພະນັກງານ</th>${state.promotions.map(p=>`<th>${esc(p.title)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${values.length?values.map(v=>`<tr><td><b>${esc(v.person.display_name)}</b></td>${state.promotions.map(p=>`<td class="${v.byPromo[p.id]<0?'negative':''}">${v.byPromo[p.id].toLocaleString()}</td>`).join('')}<td><b>${v.total.toLocaleString()}</b></td></tr>`).join(''):`<tr><td colspan="${state.promotions.length+2}">Admin ຍັງບໍ່ໄດ້ກຳນົດລາຍຊື່</td></tr>`}</tbody><tfoot><tr style="background:#dff4e8;font-size:15px"><td colspan="${state.promotions.length+1}"><b>Grand Total</b></td><td><b>${grandTotal.toLocaleString()}</b></td></tr></tfoot></table></div></section>`}
+function renderPromo(){const p=state.promotions.find(x=>x.id===state.selected),wp=currentWP(p?.id);if(!p||!wp)return goHome();const rows=state.rows.filter(r=>r.week_promotion_id===wp.id);$('#content').innerHTML=`<button class="btn secondary back" onclick="goHome()">← ກັບຄືນ</button><div class="hero"><h1>${esc(p.title)}</h1><p>${esc(p.description)}</p></div>${wp.note?`<div class="note"><b>📝 ໝາຍເຫດອາທິດນີ້</b><p>${esc(wp.note)}</p></div>`:''}${p.kind==='manual'&&state.profile.role==='staff'?manualEntry(wp):''}${promoSummary(p,rows)}${state.profile.role==='admin'?adminControls(p,wp):''}<section class="card"><h2>ຕາຕະລາງອາທິດນີ້</h2>${rowsTable(rows)}</section>`}
+function manualEntry(wp){const members=state.staffMembers.filter(x=>x.active);return `<form class="card manual-form" onsubmit="addManualPromotion(event,'${wp.id}')"><h2>➕ ເພີ່ມໂປ 100+100</h2><div class="manual-fields"><div class="field"><label>ຊື່ພະນັກງານ</label><select name="staffMemberId" required><option value="">-- ເລືອກຊື່ --</option>${members.map(x=>`<option value="${x.id}">${esc(x.display_name)}</option>`).join('')}</select></div><div class="field"><label>ເບີລູກຄ້າ</label><input name="customerRef" inputmode="tel" autocomplete="off" required maxlength="30" placeholder="ເຊັ່ນ 020xxxxxxxx"></div><div class="field"><label>ຈຳນວນໂປຣໂມຊັນ</label><input name="amount" type="number" min="0.01" step="0.01" required placeholder="100"></div><button class="btn primary">ບັນທຶກ</button></div></form>`}
+async function addManualPromotion(e,weekPromotionId){e.preventDefault();const form=e.target,staffMemberId=form.staffMemberId.value,member=state.staffMembers.find(x=>x.id===staffMemberId&&x.active),customerRef=form.customerRef.value.trim(),amount=Number(form.amount.value);if(!member)return toast('ກະລຸນາເລືອກຊື່ພະນັກງານ');if(!customerRef)return toast('ກະລຸນາໃສ່ເບີລູກຄ້າ');if(!Number.isFinite(amount)||amount<=0)return toast('ຈຳນວນໂປຕ້ອງຫຼາຍກວ່າ 0');if(!confirm(`ຢືນຢັນວ່າ ${member.display_name} ເຕີມເບີ ${customerRef} ຈຳນວນ ${amount.toLocaleString()} ບໍ?`))return;const button=form.querySelector('button');button.disabled=true;let q=await client.from('promotion_rows').insert({week_promotion_id:weekPromotionId,customer_ref:customerRef,customer_name:'',details:{display:'100+100'},amount,created_by:state.profile.id}).select('id').single();if(q.error){button.disabled=false;return toast(q.error.message)}q=await client.from('confirmations').insert({row_id:q.data.id,staff_id:state.profile.id,staff_member_id:staffMemberId});button.disabled=false;if(q.error)return toast(`ສ້າງລາຍການແລ້ວ ແຕ່ຢືນຢັນບໍ່ສຳເລັດ: ${q.error.message}`);form.reset();await reloadData();toast('ບັນທຶກໂປ 100+100 ສຳເລັດ')}
+function promoAmount(p,row){const n=Number(row.amount)||0;return p.code==='LOSS_RETURN_5'?Math.trunc(n):n}
+function promoSummary(p,rows){const confirmed=rows.map(r=>({row:r,confirmation:state.confirmations.find(c=>c.row_id===r.id)})).filter(x=>x.confirmation),total=confirmed.reduce((sum,x)=>sum+promoAmount(p,x.row),0),byStaff=new Map();for(const x of confirmed){const id=x.confirmation.staff_member_id||`old:${x.confirmation.staff_id}`,item=byStaff.get(id)||{count:0,total:0};item.count++;item.total+=promoAmount(p,x.row);byStaff.set(id,item)}const people=[...byStaff].map(([id,v])=>({name:id.startsWith('old:')?(state.profiles.find(p=>p.id===id.slice(4))?.display_name||'ຂໍ້ມູນເກົ່າ'):(state.staffMembers.find(p=>p.id===id)?.display_name||'ບໍ່ຮູ້ຊື່'),...v}));return `<section class="card summary"><h2>📊 ຍອດລວມໂປນີ້</h2><div class="summary-grid"><div class="metric"><small>ລາຍການທັງໝົດ</small><b>${rows.length}</b></div><div class="metric"><small>ຢືນຢັນແລ້ວ</small><b>${confirmed.length}</b></div><div class="metric"><small>ຍອດຢືນຢັນລວມ</small><b class="${total<0?'negative':''}">${total.toLocaleString()}</b></div></div><h3>ຍອດແຍກຕາມພະນັກງານ</h3>${people.length?people.map(x=>`<div class="staff-total"><span>${esc(x.name)}</span><b>${x.count} ລາຍການ · <span class="${x.total<0?'negative':''}">${x.total.toLocaleString()}</span></b></div>`).join(''):'<div class="empty">ຍັງບໍ່ມີການຢືນຢັນ</div>'}${p.code==='LOSS_RETURN_5'?'<small class="muted">ໝາຍເຫດ: ໜ້າຍອດລວມຈະຕັດເລກທົດສະນິຍົມອອກ ເຊັ່ນ 10.5 ເປັນ 10</small>':''}</section>`}
+function adminControls(p,wp){return `${p.kind==='excel'?`<section class="import"><h3>📋 Copy ຈາກ Excel ແລ້ວວາງ</h3><textarea id="excelPaste" placeholder="User&#9;Name&#9;Amount"></textarea><button class="btn primary" onclick="publishExcel('${p.id}')">ສ້າງຕາຕະລາງ</button></section>`:''}<section class="note"><h3>📝 ໝາຍເຫດ</h3><textarea id="noteText">${esc(wp.note)}</textarea><button class="btn secondary" onclick="saveNote('${wp.id}')">ບັນທຶກໝາຍເຫດ</button></section>`}
+function rowsTable(rows,readOnly=false){if(!rows.length)return'<div class="empty">ຍັງບໍ່ມີລາຍການ</div>';const staff=state.staffMembers.filter(p=>p.active);return `<div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>User/ເບີ</th><th>ຊື່</th><th>ລາຍລະອຽດ</th><th>ຈຳນວນ</th><th>ສະຖານະ/ຢືນຢັນ</th></tr></thead><tbody>${rows.map((r,i)=>{const done=state.confirmations.find(c=>c.row_id===r.id),who=done&&(state.staffMembers.find(p=>p.id===done.staff_member_id)||state.profiles.find(p=>p.id===done.staff_id));let action=done?`<span class="done">✓ ${esc(who?.display_name||'ຢືນຢັນແລ້ວ')}</span>`:'ລໍຖ້າ';if(!readOnly&&done&&state.profile.role==='admin')action=`<div class="confirm-box"><select id="admin-staff-${done.id}">${staff.map(p=>`<option value="${p.id}" ${p.id===done.staff_member_id?'selected':''}>${esc(p.display_name)}</option>`).join('')}</select><button class="btn secondary" onclick="updateConfirmationStaff('${done.id}')">ບັນທຶກຊື່</button></div>`;if(!readOnly&&!done&&state.profile.role==='staff')action=`<div class="confirm-box"><select id="staff-${r.id}"><option value="">-- ເລືອກຊື່ --</option>${staff.map(p=>`<option value="${p.id}">${esc(p.display_name)}</option>`).join('')}</select><button class="btn primary" onclick="confirmRow('${r.id}')">ຢືນຢັນ</button></div>`;return `<tr><td>${i+1}</td><td>${esc(r.customer_ref)}</td><td>${esc(r.customer_name)}</td><td>${esc(r.details?.display||'')}</td><td class="${Number(r.amount)<0?'negative':''}">${Number(r.amount).toLocaleString()}</td><td data-i18n>${action}</td></tr>`}).join('')}</tbody></table></div>`}
+async function confirmRow(rowId){const select=document.getElementById(`staff-${rowId}`),staffMemberId=select?.value,member=state.staffMembers.find(x=>x.id===staffMemberId&&x.active);if(!member)return toast('ກະລຸນາເລືອກຊື່ຂອງທ່ານກ່ອນ');if(!confirm(`ຢືນຢັນວ່າ ${member.display_name} ໄດ້ເຕີມໂປໃຫ້ລູກຄ້າແລ້ວບໍ?`))return;const {error}=await client.from('confirmations').insert({row_id:rowId,staff_id:state.profile.id,staff_member_id:staffMemberId});if(error)return toast(error.code==='23505'?'ລາຍການນີ້ຖືກຢືນຢັນແລ້ວ':error.message);await reloadData();toast('ຢືນຢັນສຳເລັດ')}
+async function updateConfirmationStaff(confirmationId){
+  if(state.profile.role!=='admin')return toast('ສະເພາະ Admin ເທົ່ານັ້ນ');
+  const select=document.getElementById(`admin-staff-${confirmationId}`),staffMemberId=select?.value;
+  const member=state.staffMembers.find(x=>x.id===staffMemberId&&x.active);
+  if(!member)return toast('ກະລຸນາເລືອກຊື່ພະນັກງານ');
+  if(!confirm(`ປ່ຽນຜູ້ຢືນຢັນລາຍການນີ້ເປັນ “${member.display_name}” ບໍ?`))return;
+  const {error}=await client.from('confirmations').update({staff_member_id:staffMemberId}).eq('id',confirmationId);
+  if(error)return toast(`ແກ້ຊື່ບໍ່ສຳເລັດ: ${error.message}`);
+  await reloadData();
+  toast(`ປ່ຽນຊື່ເປັນ “${member.display_name}” ແລ້ວ`);
+}
+function renderStaff(){if(state.profile.role!=='admin'){state.page='home';return renderHome()}const logins=state.profiles.filter(p=>p.role==='staff'),members=state.staffMembers;$('#content').innerHTML=`<button class="btn secondary back" onclick="navigate('home')">← ກັບຄືນ</button><div class="hero"><h1>👥 ຈັດການຊື່ພະນັກງານ</h1><p>ໃຊ້ Login ພະນັກງານດຽວ ແລະສ້າງຊື່ໃຫ້ເລືອກໄດ້ບໍ່ຈຳກັດ</p></div><div class="status">ບັນຊີ Staff Login ໃນລະບົບ: ${logins.length} ບັນຊີ. ບໍ່ຈຳເປັນສ້າງ Email ໃໝ່ເມື່ອເພີ່ມຊື່.</div><section class="card"><div class="staff-row"><h2>ລາຍຊື່ໃຫ້ພະນັກງານເລືອກ (${members.length})</h2><button class="btn primary" onclick="addStaffMember()">＋ ເພີ່ມຊື່</button></div>${members.length?members.map(p=>`<div class="staff-row"><div><b>${esc(p.display_name)}</b><br><small class="muted">${p.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</small></div><div><button class="btn secondary" onclick="renameStaff('${p.id}','${esc(p.display_name)}')">ແກ້ຊື່</button> <button class="btn ${p.active?'danger':'primary'}" onclick="setStaffActive('${p.id}',${!p.active})">${p.active?'ປິດຊື່':'ເປີດຊື່'}</button></div></div>`).join(''):'<div class="empty">ຍັງບໍ່ມີຊື່—ກົດ “ເພີ່ມຊື່”</div>'}</section>`}
+async function addStaffMember(){
+  if(state.profile?.role!=='admin')return;
+  const existing=document.getElementById('staffCreateForm');
+  if(existing){existing.querySelector('input').focus();return;}
+  const {data:branches,error}=await client.from('branches').select('id,name').eq('active',true).order('name');
+  if(error)return toast(error.message);
+  const form=document.createElement('form');
+  form.id='staffCreateForm';
+  form.className='card';
+  form.style.marginBottom='18px';
+  form.innerHTML='<label for="staffNameInput">ຊື່ພະນັກງານ</label><input id="staffNameInput" required maxlength="100" autocomplete="off" style="display:block;width:100%;padding:12px;margin:10px 0"><label for="staffBranchInput">ສາຂາ</label><select id="staffBranchInput" required style="display:block;width:100%;padding:12px;margin:10px 0"></select><button type="submit" class="btn primary">✅ ຢືນຢັນເພີ່ມຊື່</button> <button type="button" class="btn secondary">ຍົກເລີກ</button><p role="status"></p>';
+  const branchSelect=form.querySelector('select');
+  for(const branch of branches)branchSelect.add(new Option(branch.name,branch.id));
+  branchSelect.value=state.branchId||'';
+  form.querySelector('[type="button"]').onclick=()=>form.remove();
+  form.onsubmit=async event=>{
+    event.preventDefault();
+    const name=form.querySelector('input').value.trim();
+    if(!name||!branchSelect.value)return;
+    const button=form.querySelector('[type="submit"]');
+    const status=form.querySelector('[role="status"]');
+    button.disabled=true;
+    status.textContent='ກຳລັງບັນທຶກ…';
+    try{
+      const {error}=await client.from('staff_members').insert({
+        display_name:name,branch_id:branchSelect.value,created_by:state.profile.id
+      }).select('id').single();
+      if(error)throw error;
+      await reloadData();
+      toast('ເພີ່ມຊື່ພະນັກງານແລ້ວ');
+    }catch(error){
+      status.textContent='ບັນທຶກບໍ່ສຳເລັດ: '+error.message;
+      button.disabled=false;
+    }
+  };
+  document.querySelector('#content .hero').insertAdjacentElement('afterend',form);
+  form.querySelector('input').focus();
+}
+async function renameStaff(id,current){const name=prompt('ໃສ່ຊື່ພະນັກງານ:',current);if(!name?.trim())return;const {error}=await client.from('staff_members').update({display_name:name.trim()}).eq('id',id);if(error)return toast(error.message);await reloadData()}
+async function setStaffActive(id,active){if(!confirm(active?'ເປີດຊື່ນີ້ໃຫ້ເລືອກບໍ?':'ປິດຊື່ນີ້ບໍ? ຂໍ້ມູນເກົ່າຍັງຢູ່'))return;const {error}=await client.from('staff_members').update({active}).eq('id',id);if(error)return toast(error.message);await reloadData()}
+function renderHistory(){const archived=state.weeks.filter(w=>w.status==='archived'),admin=state.profile.role==='admin';if(state.historySelected){const week=archived.find(w=>w.id===state.historySelected);if(!week)state.historySelected=null;else return renderHistoryWeek(week)}$('#content').innerHTML=`<button class="btn secondary back" onclick="navigate('home')">← ກັບຄືນ</button><div class="hero"><h1>🗂️ ປະຫວັດອາທິດກ່ອນ</h1><p>ເບິ່ງຍອດ ແລະໝາຍເຫດຂອງແຕ່ລະອາທິດ</p></div>${archived.length?`<div class="grid">${archived.map(w=>{const wps=state.weekPromotions.filter(x=>x.week_id===w.id),rows=state.rows.filter(r=>wps.some(x=>x.id===r.week_promotion_id)),done=rows.filter(r=>state.confirmations.some(c=>c.row_id===r.id)),notes=wps.filter(x=>x.note?.trim()).map(x=>({title:state.promotions.find(p=>p.id===x.promotion_id)?.title||'ໂປໂມຊັນ',text:x.note.trim()}));return `<article class="card"><h2>${esc(w.label)}</h2><p class="muted">${new Date(w.starts_at).toLocaleString()}</p><span class="pill">${rows.length} ລາຍການ</span><span class="pill">ຢືນຢັນ ${done.length}</span>${notes.length?`<div class="note" style="margin:14px 0 0"><b>📝 ໝາຍເຫດ</b>${notes.map(n=>`<p style="margin:7px 0 0"><b>${esc(n.title)}:</b> ${esc(n.text)}</p>`).join('')}</div>`:''}<div style="display:grid;gap:8px;margin-top:14px"><button class="btn primary wide" onclick="openHistoryWeek('${w.id}')">ເບິ່ງປະຫວັດ →</button>${admin?`<button class="btn danger wide" onclick="deleteHistoryWeek('${w.id}')">🗑️ ລຶບອາທິດນີ້</button>`:''}</div></article>`}).join('')}</div>`:'<div class="card empty">ຍັງບໍ່ມີປະຫວັດອາທິດກ່ອນ</div>'}${admin&&archived.length?'<div class="toolbar" style="margin-top:18px"><button class="btn danger" onclick="deleteAllHistory()">ລຶບປະຫວັດທັງໝົດ</button></div>':''}`}
+function openHistoryWeek(id){state.historySelected=id;renderHistory();scrollTo(0,0)}
+function renderHistoryWeek(week){$('#content').innerHTML=`<button class="btn secondary back" onclick="state.historySelected=null;renderHistory()">← ກັບໄປລາຍການປະຫວັດ</button><div class="hero"><h1>${esc(week.label)}</h1><p>ປະຫວັດຍອດລວມຂອງອາທິດນີ້</p></div>${state.promotions.map(p=>{const wp=weekWP(week.id,p.id),rows=wp?state.rows.filter(r=>r.week_promotion_id===wp.id):[];return `<section class="card" style="margin-bottom:18px"><h2>${esc(p.title)}</h2>${wp?.note?`<div class="note"><b>📝 ໝາຍເຫດ</b><p>${esc(wp.note)}</p></div>`:''}${promoSummary(p,rows)}<section class="card" style="margin-top:14px"><h3>📋 ລາຍລະອຽດທຸກລາຍການ</h3>${rowsTable(rows,true)}</section></section>`}).join('')}${financeHistoryCard(week)}`}
+const financeHistoryLabels=[['cash_open','CASH IN(ເປີດ)'],['credit_in4','CREDIT IN 1'],['credit_in5','CREDIT IN 2'],['credit_in7','CREDIT IN 3'],['credit_in8','CREDIT IN 4'],['credit_in9','CREDIT IN 5'],['credit_in6','ເຕີມ-ຖອນ(ເຄດິດ)'],['total1','Total1'],['cash_close','CASH OUT(ປິດ)'],['credit_out3','CREDIT OUT 1'],['credit_out4','CREDIT OUT 2'],['credit_out5','CREDIT OUT 3'],['credit_out6','CREDIT OUT 4'],['credit_out7','CREDIT OUT 5'],['credit_out8','ເຕີມ-ຖອນ(ເງິນ)'],['promo','promo(ໂປໂມຊັນ) — Grand Total'],['expense','expense(ລາຍຈ່າຍ)'],['THB','ບາດ 1'],['THB2','ບາດ 2'],['cash4','cash kip'],['kip','kip'],['cash5','cash kip2'],['kip2','kip2'],['cash6','cash kip3'],['kip3','kip3'],['cash_count','ເງິນສົດ'],['bill','ບິນ'],['totalExpenses','TotalExpenses'],['grand_total','Grand Total']];
+function financeHistoryNumber(value){const n=Number(String(value??0).replace(/[, ]+/g,''));return Number.isFinite(n)?n.toLocaleString():esc(String(value??'0'))}
+function financeHistoryComputed(values,promoValue=0){const n=id=>Number(String(values?.[id]??0).replace(/[, ]+/g,''))||0,cash4=Math.round(n('kip')/(n('exchange_rate')>0?n('exchange_rate'):700)),cash5=Math.round(n('kip2')/(n('exchange_rate')>0?n('exchange_rate'):700)),cash6=Math.round(n('kip3')/(n('exchange_rate')>0?n('exchange_rate'):700)),total1=-n('credit_in4')-n('credit_in5')-n('credit_in6')-n('credit_in7')-n('credit_in8')-n('credit_in9')+n('credit_out3')+n('credit_out4')+n('credit_out5')+n('credit_out6')+n('credit_out7')-n('credit_out8'),totalExpenses=Math.round(promoValue+n('THB')+n('THB2')+cash4+cash5+cash6+n('expense')+n('cash_count')+n('bill')),grandTotal=Math.round(n('cash_close')-n('cash_open')+total1);return{cash4,cash5,cash6,total1,promo:promoValue,totalExpenses,grand_total:grandTotal}}
+function financeHistoryCard(week){const history=state.financeHistory.find(x=>x.week_id===week.id);if(!history)return '<section class="card" style="margin-top:18px"><h2>🛒 ປະຫວັດລາຍຈ່າຍ</h2><div class="empty">ອາທິດນີ້ຍັງບໍ່ມີປະຫວັດລາຍຈ່າຍ (ລະບົບເລີ່ມບັນທຶກຫຼັງອັບເດດ)</div></section>';const values=history.report_data?.values||{},computed=history.report_data?.computed||financeHistoryComputed(values,Number(history.report_data?.closing_promo_total)||0),entries=financeHistoryLabels.map(([id,label])=>({label,value:values[id]??computed[id]??'0'})),online=Array.isArray(history.online_expenses?.rows)?history.online_expenses.rows:[];return `<section class="card" style="margin-top:18px"><h2>🛒 ປະຫວັດລາຍຈ່າຍ</h2><p class="muted">ບັນທຶກເມື່ອ: ${new Date(history.captured_at).toLocaleString()}</p><div class="table-wrap"><table class="data"><thead><tr><th>ລາຍການ</th><th>ຈຳນວນ</th></tr></thead><tbody>${entries.map(x=>`<tr><td class="label">${esc(x.label)}</td><td>${financeHistoryNumber(x.value)}</td></tr>`).join('')}</tbody></table></div><h3 style="margin-top:18px">ລາຍຈ່າຍ (ONLINE)</h3>${online.length?`<div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>ວັນທີ</th><th>ລາຍລະອຽດ</th><th>ຈຳນວນ</th></tr></thead><tbody>${online.map((row,i)=>`<tr><td>${i+1}</td><td>${esc(row.date||'')}</td><td>${esc(row.remark||'')}</td><td>${financeHistoryNumber(row.amount)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">ບໍ່ມີລາຍຈ່າຍ ONLINE</div>'}</section>`}
+function createNewWeek(){
+  toggleSidebar(false);
+  if(!state.branchId)return toast('ກະລຸນາກຳນົດສາຂາກ່ອນ');
+  if(document.getElementById('weekCreateForm'))return;
+  const branchId=state.branchId,previousId=state.week?.id??null;
+  const form=document.createElement('form');
+  form.id='weekCreateForm';
+  form.className='card';
+  form.style.marginBottom='18px';
+  form.innerHTML='<h2>ເປີດອາທິດໂປຣ</h2><p>ອາທິດທີ່ເປີດຢູ່ຈະເຂົ້າປະຫວັດ ແລະລາຍຈ່າຍຈະກັບເປັນ 0.</p><label>ຊື່ອາທິດ<input name="weekLabel" required maxlength="150" style="display:block;padding:12px;margin:10px 0;width:100%"></label><label>ພິມ ok ເພື່ອຢືນຢັນ<input name="confirmation" required pattern="ok" autocomplete="off" style="display:block;padding:12px;margin:10px 0"></label><button type="submit" class="btn primary">ຢືນຢັນສ້າງອາທິດ</button> <button type="button" class="btn secondary">ຍົກເລີກ</button><p role="status"></p>';
+  form.elements.weekLabel.value='ອາທິດ '+new Date().toLocaleDateString();
+  form.querySelector('[type="button"]').onclick=()=>form.remove();
+  form.onsubmit=async event=>{
+    event.preventDefault();
+    const button=form.querySelector('[type="submit"]'),status=form.querySelector('[role="status"]');
+    if(form.elements.confirmation.value!=='ok')return;
+    button.disabled=true;
+    try{
+      const {error}=await client.rpc('start_branch_week',{
+        target:branchId,week_label:form.elements.weekLabel.value.trim(),
+        expected_week:previousId,promo_total:Number(localStorage.getItem('promoflow_grand_total:'+branchId))||0
+      });
+      if(error)throw error;
+      state.page='home';
+      await reloadData();
+    }catch(error){status.textContent=error.message;button.disabled=false;}
+  };
+  document.getElementById('content').prepend(form);
+  form.scrollIntoView({block:'start'});
+}
+async function deleteAllHistory(){if(state.profile.role!=='admin')return;const archived=state.weeks.filter(w=>w.status==='archived');if(!archived.length)return;if(prompt('ການລຶບຈະກູ້ຄືນບໍ່ໄດ້. ພິມ DELETE ເພື່ອຢືນຢັນ:')!=='DELETE')return toast('ຍົກເລີກການລຶບ');const {error}=await client.from('promo_weeks').delete().in('id',archived.map(w=>w.id));if(error)return toast(error.message);state.historySelected=null;await reloadData();toast('ລຶບປະຫວັດທັງໝົດແລ້ວ')}
+async function deleteHistoryWeek(id){
+  if(state.profile.role!=='admin')return toast('ສະເພາະ Admin ເທົ່ານັ້ນ');
+  const week=state.weeks.find(w=>w.id===id&&w.status==='archived');
+  if(!week)return toast('ບໍ່ພົບປະຫວັດອາທິດນີ້');
+  if(!confirm(`ຢືນຢັນລຶບ “${week.label}” ບໍ?\nຂໍ້ມູນຂອງອາທິດນີ້ຈະກູ້ຄືນບໍ່ໄດ້.`))return;
+  const {error}=await client.from('promo_weeks').delete().eq('id',id).eq('status','archived');
+  if(error)return toast(`ລຶບບໍ່ສຳເລັດ: ${error.message}`);
+  state.historySelected=null;
+  await reloadData();
+  toast(`ລຶບ “${week.label}” ແລ້ວ`);
+}
+function renderPassword(){$('#content').innerHTML=`<button class="btn secondary back" onclick="navigate('home')">← ກັບຄືນ</button><div class="hero"><h1>🔐 ປ່ຽນລະຫັດ</h1><p>ປ່ຽນລະຫັດຂອງບັນຊີທີ່ Login ຢູ່</p></div><form class="card form-card" onsubmit="changePassword(event)"><div class="field"><label>ລະຫັດໃໝ່</label><input name="password" type="password" minlength="6" required></div><div class="field"><label>ຢືນຢັນລະຫັດໃໝ່</label><input name="again" type="password" minlength="6" required></div><button class="btn primary wide">ປ່ຽນລະຫັດ</button></form>`}
+function renderPasswordDrawer(){$('#passwordContent').innerHTML=`<div class="status">ທ່ານກຳລັງປ່ຽນລະຫັດຂອງ <b>${esc(state.profile?.display_name||'')}</b></div><form class="card" onsubmit="changePassword(event)"><div class="field"><label>ລະຫັດໃໝ່ (ຢ່າງໜ້ອຍ 6 ຕົວ)</label><input name="password" type="password" minlength="6" autocomplete="new-password" required></div><div class="field"><label>ຢືນຢັນລະຫັດໃໝ່</label><input name="again" type="password" minlength="6" autocomplete="new-password" required></div><button class="btn primary wide">ປ່ຽນລະຫັດ</button></form><p class="muted">ເພື່ອຄວາມປອດໄພ ບັນຊີແຕ່ລະຄົນປ່ຽນລະຫັດຂອງຕົນເອງ.</p>`}
+async function changePassword(e){e.preventDefault();const a=e.target.password.value,b=e.target.again.value;if(a!==b)return toast('ລະຫັດສອງຊ່ອງບໍ່ຄືກັນ');const {error}=await client.auth.updateUser({password:a});if(error)return toast(error.message);e.target.reset();togglePasswordDrawer(false);toast('ປ່ຽນລະຫັດສຳເລັດ')}
+function playAlertSound(){try{alertAudio=alertAudio||new (window.AudioContext||window.webkitAudioContext)();const osc=alertAudio.createOscillator(),gain=alertAudio.createGain();osc.type='square';osc.frequency.setValueAtTime(880,alertAudio.currentTime);gain.gain.setValueAtTime(.28,alertAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.01,alertAudio.currentTime+.55);osc.connect(gain);gain.connect(alertAudio.destination);osc.start();osc.stop(alertAudio.currentTime+.55)}catch(_){}}
+function stopAlertSound(){if(alertTimer){clearInterval(alertTimer);alertTimer=null}}
+function notificationSeenKey(id){return `promoflow-notification-seen:${state.profile?.id}:${id}`}
+function checkUnreadNotification(){if(state.profile?.role!=='staff'||document.querySelector('.alert-overlay'))return;const activeWpIds=new Set(state.weekPromotions.filter(wp=>wp.week_id===state.week?.id).map(wp=>wp.id)),unread=state.notifications.find(n=>activeWpIds.has(n.week_promotion_id)&&localStorage.getItem(notificationSeenKey(n.id))!=='1'&&!state.notificationReads.some(r=>r.notification_id===n.id&&r.user_id===state.profile.id));if(unread)showNotification(unread)}
+function showNotification(n){document.body.insertAdjacentHTML('beforeend',`<div class="alert-overlay"><div class="alert-modal"><div class="alert-bell">🔔</div><h2>${esc(n.title)}</h2><p>${esc(n.message||'ມີໂປຣໂມຊັນໃໝ່')}</p><button class="btn primary" onclick="acknowledgeNotification('${n.id}','${n.week_promotion_id||''}')">ຮັບຊາບ ແລະເຂົ້າໄປເບິ່ງ</button></div></div>`);playAlertSound();stopAlertSound();alertTimer=setInterval(playAlertSound,1250)}
+async function acknowledgeNotification(id,weekPromotionId){stopAlertSound();localStorage.setItem(notificationSeenKey(id),'1');document.querySelector('.alert-overlay')?.remove();const {error}=await client.from('notification_reads').insert({notification_id:id,user_id:state.profile.id});if(error&&error.code!=='23505')toast(`ຈື່ໃນອຸປະກອນແລ້ວ · Supabase: ${error.message}`);if(!state.notificationReads.some(r=>r.notification_id===id&&r.user_id===state.profile.id))state.notificationReads.push({notification_id:id,user_id:state.profile.id});const wp=state.weekPromotions.find(x=>x.id===weekPromotionId);if(wp)openPromo(wp.promotion_id)}
+function startNotificationPolling(){if(pollTimer)clearInterval(pollTimer);if(state.profile?.role!=='staff')return;pollTimer=setInterval(async()=>{const [a,b]=await Promise.all([client.from('notifications').select('*').order('created_at',{ascending:false}),client.from('notification_reads').select('*')]);if(!a.error&&!b.error){state.notifications=a.data;state.notificationReads=b.data;checkUnreadNotification()}},10000)}
+async function reloadData(){await loadData();render();toast('ໂຫຼດຂໍ້ມູນໃໝ່ແລ້ວ')}
+async function saveNote(id){const note=$('#noteText').value.trim(),{error}=await client.from('week_promotions').update({note}).eq('id',id);if(error)return toast(error.message);await reloadData();toast('ບັນທຶກໝາຍເຫດແລ້ວ')}
+async function publishExcel(promoId){const text=$('#excelPaste').value.trim();if(!text)return toast('ກະລຸນາວາງຂໍ້ມູນ Excel');const note=prompt('ໃສ່ໝາຍເຫດກ່ອນສ້າງຕາຕະລາງ:');if(!note?.trim())return toast('ຕ້ອງໃສ່ໝາຍເຫດ');const wp=currentWP(promoId),lines=text.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>x.split('\t').map(v=>v.trim())),hi=lines.findIndex((a,i)=>i<6&&a.some(v=>/user|name|amount|result|return|spin|ຜູ້ໃຊ້|ຊື່|ຈຳນວນ/i.test(v))),header=hi>=0?lines[hi]:null,data=header?lines.slice(hi+1):lines;let ui=header?.findIndex(v=>/user|ຜູ້ໃຊ້/i.test(v))??-1,ni=header?.findIndex(v=>/^name$|ຊື່/i.test(v))??-1;if(ui<0){const a=data[0]||[];ui=a.length>=4&&/^\d+$/.test(a[0])?1:0}if(ni<0)ni=ui+1;const inserts=data.filter(a=>a[ui]).map(a=>{const ai=a.length-1,amount=Number(String(a[ai]||0).replace(/,/g,''))||0;return{week_promotion_id:wp.id,customer_ref:a[ui],customer_name:a[ni]||'',details:{display:a.filter((_,i)=>i!==ui&&i!==ni&&i!==ai).join(' | '),raw_amount:amount},amount,created_by:state.profile.id}});if(!inserts.length)return toast('ບໍ່ພົບລາຍການ');if(!confirm(`ສ້າງ ${inserts.length} ລາຍການບໍ?`))return;let q=await client.from('week_promotions').update({note:note.trim(),published_at:new Date().toISOString(),published_by:state.profile.id}).eq('id',wp.id);if(q.error)return toast(q.error.message);q=await client.from('promotion_rows').insert(inserts);if(q.error)return toast(q.error.message);q=await client.from('notifications').insert({week_promotion_id:wp.id,title:'ມີໂປຣໂມຊັນໃໝ່',message:note.trim(),created_by:state.profile.id});if(q.error)return toast(q.error.message);await reloadData();toast('ສ້າງຕາຕະລາງສຳເລັດ')}
+
+client.auth.onAuthStateChange((_event,session)=>setTimeout(()=>{if(session)boot(session).catch(error=>showError('ໂຫຼດຂໍ້ມູນ PromoFlow ບໍ່ສຳເລັດ ('+(error.code||error.name||'load error')+')'));else{stopAlertSound();if(pollTimer)clearInterval(pollTimer);pollTimer=null;toggleSidebar(false);togglePasswordDrawer(false);document.querySelector('.alert-overlay')?.remove();showLogin()}},0));
+(async()=>{const {data}=await client.auth.getSession();if(data.session)await boot(data.session);else showLogin()})();
+</script>
+<script>
+/* Branch administration module. It is activated only after the matching branch SQL is run. */
+async function loadBranches(){const {data,error}=await client.from('branches').select('*').order('created_at');if(error)throw error;state.branches=data||[];return state.branches}
+async function openBranchAdmin(){if(state.profile?.role!=='admin')return toast('ສະເພາະ Admin ເທົ່ານັ້ນ');try{await loadBranches()}catch(error){return toast('ຍັງບໍ່ພ້ອມ: ກະລຸນາ Run SQL ລະບົບສາຂາກ່ອນ')}toggleSidebar(false);const rows=state.branches.map(b=>`<div class="staff-row"><div><b>${esc(b.name)}</b><br><small class="muted">ລະຫັດ: ${esc(b.code)} · ${b.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</small></div><button class="btn ${b.active?'danger':'primary'}" onclick="setBranchActive('${b.id}',${!b.active})">${b.active?'ປິດສາຂາ':'ເປີດສາຂາ'}</button></div>`).join('');$('#content').innerHTML=`<button class="btn secondary back" onclick="goHome()">← ກັບຄືນ</button><div class="hero"><h1>🏢 ຈັດການສາຂາ</h1><p>ເພີ່ມ ແລະປິດ/ເປີດສາຂາໄດ້ຈາກໜ້ານີ້</p></div><section class="card"><div class="staff-row"><h2>ສາຂາທັງໝົດ (${state.branches.length})</h2><button class="btn primary" onclick="addBranch()">＋ ເພີ່ມສາຂາ</button></div>${rows||'<div class="empty">ຍັງບໍ່ມີສາຂາ</div>'}</section>`}
+function addBranch(){
+  if(state.profile?.role!=='admin')return;
+  const existing=document.getElementById('branchCreateForm');
+  if(existing){existing.querySelector('input').focus();return;}
+  const form=document.createElement('form');
+  form.id='branchCreateForm';
+  form.className='card';
+  form.style.marginBottom='18px';
+  form.innerHTML='<label for="newBranchName">ຊື່ສາຂາໃໝ່</label><input id="newBranchName" required maxlength="100" autocomplete="off" style="display:block;width:100%;padding:12px;margin:10px 0"><button class="btn primary" type="submit">✅ ຢືນຢັນເພີ່ມສາຂາ</button> <button class="btn secondary" type="button">ຍົກເລີກ</button><p role="status"></p>';
+  form.querySelector('[type="button"]').onclick=()=>form.remove();
+  form.onsubmit=async event=>{
+    event.preventDefault();
+    const name=form.querySelector('input').value.trim();
+    const status=form.querySelector('[role="status"]');
+    if(!name){status.textContent='ກະລຸນາໃສ່ຊື່ສາຂາ';return;}
+    const button=form.querySelector('[type="submit"]');
+    button.disabled=true;
+    status.textContent='ກຳລັງບັນທຶກ…';
+    try{
+      const {error}=await client.from('branches').insert({
+        name,code:'BRANCH-'+crypto.randomUUID(),created_by:state.profile.id
+      }).select('id').single();
+      if(error)throw error;
+      await selectBranch();
+      await openBranchAdmin();
+      toast('ເພີ່ມສາຂາແລ້ວ');
+    }catch(error){
+      status.textContent='ບັນທຶກບໍ່ສຳເລັດ: '+error.message;
+      button.disabled=false;
+    }
+  };
+  document.querySelector('#content .hero').insertAdjacentElement('afterend',form);
+  form.querySelector('input').focus();
+}
+async function setBranchActive(id,active){if(!confirm(active?'ເປີດສາຂານີ້ບໍ?':'ປິດສາຂານີ້ບໍ?'))return;const {error}=await client.from('branches').update({active}).eq('id',id);if(error)return toast(error.message);openBranchAdmin()}
+window.addEventListener('load',()=>{const watch=setInterval(()=>{if(!state.profile)return;clearInterval(watch);if(state.profile.role!=='admin')return;const nav=document.querySelector('#staffNav');if(nav&&!document.querySelector('#branchAdminNav')){const b=document.createElement('button');b.id='branchAdminNav';b.className='btn secondary';b.textContent='🏢 ຈັດການສາຂາ';b.onclick=openBranchAdmin;nav.insertAdjacentElement('afterend',b)}} ,250)});
+</script>
+<script>
+/* Extends branch administration with staff assignment. */
+async function openBranchAdmin(){if(state.profile?.role!=='admin')return toast('ສະເພາະ Admin ເທົ່ານັ້ນ');const [branchResult,staffResult]=await Promise.all([client.from('branches').select('*').order('created_at'),client.from('staff_members').select('*').order('display_name')]);if(branchResult.error||staffResult.error)return toast('ຍັງບໍ່ພ້ອມ: ກະລຸນາ Run SQL ລະບົບສາຂາກ່ອນ');state.branches=branchResult.data||[];state.staffMembers=staffResult.data||[];toggleSidebar(false);const options=state.branches.filter(b=>b.active).map(b=>`<option value="${b.id}">${esc(b.name)} (${esc(b.code)})</option>`).join('');const branchRows=state.branches.map(b=>`<div class="staff-row"><div><b>${esc(b.name)}</b><br><small class="muted">ລະຫັດ: ${esc(b.code)} · ${b.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</small></div><button class="btn ${b.active?'danger':'primary'}" onclick="setBranchActive('${b.id}',${!b.active})">${b.active?'ປິດສາຂາ':'ເປີດສາຂາ'}</button></div>`).join('');const staffRows=state.staffMembers.map(s=>`<div class="staff-row"><div><b>${esc(s.display_name)}</b></div><select onchange="assignStaffBranch('${s.id}',this.value)"><option value="">-- ບໍ່ກຳນົດ --</option>${options.replace(`value=\"${s.branch_id}\"`,`value=\"${s.branch_id}\" selected`)}</select></div>`).join('');$('#content').innerHTML=`<button class="btn secondary back" onclick="goHome()">← ກັບຄືນ</button><div class="hero"><h1>🏢 ຈັດການສາຂາ</h1><p>ສ້າງສາຂາ ແລະກຳນົດພະນັກງານຂອງແຕ່ລະສາຂາ</p></div><section class="card"><div class="staff-row"><h2>ສາຂາທັງໝົດ (${state.branches.length})</h2><button class="btn primary" onclick="addBranch()">＋ ເພີ່ມສາຂາ</button></div>${branchRows}</section><section class="card" style="margin-top:18px"><h2>👥 ກຳນົດພະນັກງານເຂົ້າສາຂາ</h2>${staffRows||'<div class="empty">ຍັງບໍ່ມີພະນັກງານ</div>'}</section><section class="card" style="margin-top:18px"><h2>ສາຂາຂອງບັນຊີເຂົ້າລະບົບ</h2>${state.profiles.filter(p=>p.role==='staff').map(p=>`<div class="staff-row"><b>${esc(p.display_name)}</b><select aria-label="ສາຂາຂອງບັນຊີ" onchange="assignLoginBranch('${p.id}',this.value)"><option value="">ເລືອກສາຂາ</option>${state.branches.filter(b=>b.active||b.id===p.branch_id).map(b=>`<option value="${b.id}" ${b.id===p.branch_id?'selected':''}>${esc(b.name)}</option>`).join('')}</select></div>`).join('')}</section>`}
+async function assignLoginBranch(id,branchId){
+  if(state.profile?.role!=='admin')return;
+  const account=state.profiles.find(p=>p.id===id&&p.role==='staff');
+  if(!account||!state.branches.some(b=>b.id===branchId&&b.active))return openBranchAdmin();
+  const {data,error}=await client.from('profiles').update({branch_id:branchId})
+    .eq('id',id).eq('role','staff').select('id').single();
+  if(error||!data){toast(error?.message||'ບັນທຶກບໍ່ສຳເລັດ');return openBranchAdmin()}
+  account.branch_id=branchId;
+  toast('ບັນທຶກສາຂາຂອງບັນຊີແລ້ວ');
+}
+async function assignStaffBranch(staffId,branchId){const {error}=await client.from('staff_members').update({branch_id:branchId||null}).eq('id',staffId);if(error)return toast(error.message);toast('ບັນທຶກສາຂາພະນັກງານແລ້ວ')}
+</script>
+<script src="branch-logins.js"></script>
+<script src="language.js"></script></body>
+</html>
