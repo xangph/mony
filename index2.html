@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap" rel="stylesheet">
+<title>ລາຍຈ່າຍ + Total</title>
+
+<style>
+body{margin:0;font-family:"Noto Sans Lao",system-ui;background:#f5f6fa;color:#111;padding:22px}
+body.auth-pending{visibility:hidden}
+.promoflow-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.promoflow-nav a{display:inline-block;padding:9px 14px;border-radius:8px;background:#0b6b4a;color:#fff;text-decoration:none;font-weight:700}
+h2{color:#333}
+table{width:100%;border-collapse:collapse;margin-top:10px;box-shadow:0 3px 10px rgba(0,0,0,.1);border-radius:8px;overflow:hidden;background:#fff}
+th,td{border:1px solid #9c9c9c;padding:10px;text-align:center}
+th{background:linear-gradient(90deg,#5ce4e7,#07a8ff);color:#fff;font-weight:bold}
+td[contenteditable]{background:#fff;border-radius:4px;min-width:60px}
+tfoot td{font-weight:bold;background:#dfe6e9}
+button{cursor:pointer;padding:6px 12px;border:none;border-radius:6px;background:#0984e3;color:#fff}
+button:hover{background:#74b9ff}
+.addRowBtn{margin-top:10px;background:#00b894}
+.clearBtn{margin-top:10px;background:#d63031}
+button#confirmExpenses{display:inline-flex;align-items:center;justify-content:center;min-height:56px;min-width:260px;padding:14px 24px;margin:16px 0 8px 10px;background:#087447!important;color:#fff;font-size:20px;font-weight:800;border:2px solid #034d2e;border-radius:12px;box-shadow:0 5px 12px #075a4233}
+button#confirmExpenses:hover{background:#055c37!important}
+button#confirmExpenses:focus-visible{outline:3px solid #132f54;outline-offset:3px}
+button#confirmExpenses:disabled{opacity:.65;cursor:wait;box-shadow:none}
+@media(max-width:600px){button#confirmExpenses{display:flex;width:100%;min-width:0;margin:14px 0 8px}}
+#goHome{margin-bottom:15px;background:#009f95}
+#goHome:hover{background:#ff0000}
+</style>
+<script src="branch-context.js"></script>
+</head>
+
+<body class="auth-pending">
+<script>
+const financeAuthClient=supabase.createClient('https://sytvktwgaxokwripenvd.supabase.co','sb_publishable_XILath1IrxTxXfgYMjztbQ_821NXG_j');
+let financeUserId=null;
+let expensesBranchId=null;
+let expensesCloudReady=false;
+let expensesSaveTimer=null;
+let expenseStaff=[];
+let expensesDirty=false;
+financeAuthClient.auth.getSession().then(async ({data})=>{
+  if(!data.session){location.replace('../index.html');return;}
+  financeUserId=data.session.user.id;
+  const {data:profile,error}=await financeAuthClient.from('profiles')
+    .select('branch_id,active,role').eq('id',financeUserId).single();
+  if(error || !profile?.active || !profile.branch_id) throw new Error('Branch unavailable');
+  expensesBranchId=await resolveFinanceBranch(financeAuthClient,profile);
+  const staffResult=await financeAuthClient.from('staff_members').select('id,display_name')
+    .eq('branch_id',expensesBranchId).eq('active',true).order('display_name');
+  if(staffResult.error)throw staffResult.error;
+  expenseStaff=staffResult.data||[];
+  await loadExpensesCloud();
+  if(!expensesCloudReady) throw new Error('Expenses unavailable');
+  document.body.classList.remove('auth-pending');
+}).catch(()=>location.replace('../index.html'));
+</script>
+<nav class="promoflow-nav"><a href="../index.html">← PromoFlow</a><a href="index.html">📊 ລາຍຮັບ–ລາຍຈ່າຍ</a></nav>
+
+<button id="goHome">🏠 ກັບໄປ Home</button>
+
+<h2>ລາຍຈ່າຍ (ONLINE)</h2>
+<table class="expenseTable" data-id="online">
+<thead>
+<tr>
+  <th>#</th>
+  <th>ວັນທີ / ເວລາ</th>
+  <th>ລາຍການ</th>
+  <th>ພະນັກງານ</th>
+  <th>ຈຳນວນເງິນ</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+  <td colspan="4">Total</td>
+  <td class="totalAmount">0</td>
+  <td></td>
+</tr>
+</tfoot>
+</table>
+
+<button class="addRowBtn">➕ ເພີ່ມແຖວ</button>
+<button id="confirmExpenses" style="margin-top:10px;background:#0b6b4a">✅ ຢືນຢັນບັນທຶກ</button>
+<p id="expenseStatus" role="status"></p>
+
+<h2>Grand Total</h2>
+<div id="grandTotal" style="font-size:20px;font-weight:bold">0</div>
+
+<button id="clearAll" class="clearBtn">🧹 ລ້າງຂໍ້ມູນ</button>
+<button id="sendWhatsapp" style="margin-top:15px;background:#25d366;font-size:16px">
+📤 ສົ່ງໄປ WhatsApp
+</button>
+
+<script>
+/* ======================
+   Navigation
+====================== */
+document.getElementById('goHome').onclick=()=>location.href='index.html'
+
+/* ======================
+   Helpers (ของเดิม)
+====================== */
+function getKey(){ return 'expense_online:'+expensesBranchId }
+function nowText(){
+  const d=new Date()
+  const day=String(d.getDate()).padStart(2,'0')
+  const month=String(d.getMonth()+1).padStart(2,'0')
+  const year=d.getFullYear()
+  const h=String(d.getHours()).padStart(2,'0')
+  const m=String(d.getMinutes()).padStart(2,'0')
+  return `${day}/${month}/${year} ${h}:${m}`
+}
+function parseNum(t){
+  const n=parseInt(t.replace(/,/g,''))
+  return isNaN(n)?0:n
+}
+
+/* ======================
+   Table Logic
+====================== */
+const table=document.querySelector('.expenseTable')
+const tbody=table.querySelector('tbody')
+
+function addRow(index,data={}){
+  const tr=document.createElement('tr')
+  tr.innerHTML=`
+    <td>${index}</td>
+    <td class="date">${data.date||'--/--/---- --:--'}</td>
+    <td contenteditable class="remark">${data.remark||'ລາຍການ '+index}</td>
+    <td contenteditable class="amount">${data.amount||'0'}</td>
+    <td><button class="del">🗑</button></td>
+  `
+  tbody.appendChild(tr)
+  tr.querySelector('.date').textContent=data.date||'--/--/---- --:--';
+  tr.querySelector('.remark').textContent=data.remark||'ລາຍການ '+index;
+  tr.querySelector('.amount').textContent=data.amount||'0';
+  const staffCell=document.createElement('td');
+  const select=document.createElement('select');
+  select.className='expense-staff';
+  select.required=true;
+  select.style.cssText='padding:10px;max-width:100%;font:inherit';
+  select.add(new Option('-- ເລືອກຊື່ --',''));
+  for(const person of expenseStaff)select.add(new Option(person.display_name,person.id));
+  if(data.staff_member_id&&!expenseStaff.some(p=>p.id===data.staff_member_id)){
+    select.add(new Option(data.staff_name||'ຊື່ເກົ່າ',data.staff_member_id));
+  }
+  select.value=data.staff_member_id||'';
+  select.onchange=()=>{tr.querySelector('.date').textContent=nowText();save();};
+  staffCell.append(select);
+  tr.querySelector('.amount').insertAdjacentElement('beforebegin',staffCell);
+}
+
+/* ======================
+   Load
+====================== */
+const saved=[]
+if(saved.length){
+  saved.forEach((r,i)=>addRow(i+1,r))
+}else addRow(1)
+updateTotal()
+
+/* ======================
+   Events
+====================== */
+document.querySelector('.addRowBtn').onclick=()=>{
+  addRow(tbody.children.length+1)
+  save()
+  updateTotal()
+}
+
+document.body.addEventListener('click',e=>{
+  if(e.target.classList.contains('del')){
+    e.target.closest('tr').remove()
+    Array.from(tbody.children).forEach((tr,i)=>tr.children[0].textContent=i+1)
+    save()
+    updateTotal()
+  }
+})
+
+/* ===== INPUT (ของเดิม + กันพัง) ===== */
+document.body.addEventListener('input',e=>{
+  const tr=e.target.closest('tr')
+  if(!tr) return
+
+  if(
+    e.target.classList.contains('remark') ||
+    e.target.classList.contains('amount')
+  ){
+    tr.querySelector('.date').textContent=nowText()
+  }
+
+  
+
+  save()
+  updateTotal()
+})
+
+document.body.addEventListener('blur',e=>{
+  if(e.target.classList.contains('amount')){
+    const v=parseNum(e.target.textContent)
+    e.target.textContent=v.toLocaleString()
+    save()
+    updateTotal()
+  }
+},true)
+
+/* ======================
+   Calculate / Save
+====================== */
+function updateTotal(){
+  let total=0
+  tbody.querySelectorAll('.amount').forEach(td=>{
+    total+=parseNum(td.textContent)
+  })
+  table.querySelector('.totalAmount').textContent=total.toLocaleString()
+  document.getElementById('grandTotal').textContent=total.toLocaleString()
+
+  // sync ไป INDEX.HTML
+  // The report receives only the successfully confirmed cloud value.
+}
+
+function save(confirmSave=false){
+  expensesDirty=true;
+  clearTimeout(expensesSaveTimer);
+  const data=[]
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    data.push({
+      date:tr.querySelector('.date').textContent,
+      remark:tr.querySelector('.remark').textContent,
+      amount:tr.querySelector('.amount').textContent,
+      staff_member_id:tr.querySelector('.expense-staff').value||null,
+      staff_name:tr.querySelector('.expense-staff').selectedOptions[0]?.textContent||''
+    })
+  })
+  localStorage.setItem(getKey(),JSON.stringify(data))
+  if(expensesCloudReady){
+    const missing=Array.from(tbody.querySelectorAll('.expense-staff')).find(select=>
+      !expenseStaff.some(person=>person.id===select.value));
+    if(missing){
+      document.getElementById('expenseStatus').textContent='ກະລຸນາເລືອກຊື່ພະນັກງານສຳລັບລາຍຈ່າຍກ່ອນບັນທຶກ';
+      if(confirmSave){missing.focus();missing.reportValidity();}
+      return;
+    }
+    if(!confirmSave){
+      document.getElementById('expenseStatus').textContent='ມີການແກ້ໄຂ ກະລຸນາກົດຢືນຢັນບັນທຶກ';
+      return;
+    }
+    saveExpensesCloud(data);
+  }
+}
+
+async function saveExpensesCloud(rows){
+  if(!expensesCloudReady || !expensesBranchId) return
+  const button=document.getElementById('confirmExpenses');
+  if(button.disabled)return;
+  button.disabled=true;
+  tbody.inert=true;
+  document.getElementById('expenseStatus').textContent='ກຳລັງບັນທຶກ…';
+  try{
+  const {error}=await financeAuthClient.from('finance_branch_state').upsert({
+    branch_id:expensesBranchId,state_key:'expenses_online',
+    data:{rows}, updated_at:new Date().toISOString(), updated_by:financeUserId
+  },{onConflict:'branch_id,state_key'})
+  if(error){document.getElementById('expenseStatus').textContent=error.message;return;}
+  expensesDirty=false;
+  const confirmedTotal=rows.reduce((sum,row)=>sum+parseNum(row.amount),0);
+  localStorage.setItem('expense_from_index2:'+expensesBranchId,String(confirmedTotal));
+  document.getElementById('expenseStatus').textContent='ບັນທຶກແລ້ວ';
+  }catch(error){
+    document.getElementById('expenseStatus').textContent='ບັນທຶກບໍ່ສຳເລັດ: '+error.message;
+  }finally{
+    button.disabled=false;
+    tbody.inert=false;
+  }
+}
+document.getElementById('confirmExpenses').onclick=()=>save(true);
+
+async function loadExpensesCloud(){
+  if(!expensesBranchId || expensesDirty || document.activeElement?.isContentEditable || document.activeElement?.matches('.expense-staff')) return
+  const {data,error}=await financeAuthClient.from('finance_branch_state')
+    .select('data').eq('branch_id',expensesBranchId).eq('state_key','expenses_online').maybeSingle()
+  if(error){ console.error('Expenses cloud load:',error); return }
+  const rows=Array.isArray(data?.data?.rows) ? data.data.rows : []
+  if(rows.length){
+    tbody.innerHTML=''
+    rows.forEach((row,i)=>addRow(i+1,row))
+    localStorage.setItem(getKey(),JSON.stringify(rows))
+    updateTotal()
+    localStorage.setItem('expense_from_index2:'+expensesBranchId,
+      String(rows.reduce((sum,row)=>sum+parseNum(row.amount),0)));
+  }else{
+    tbody.innerHTML=''
+    addRow(1)
+    localStorage.removeItem(getKey())
+    localStorage.setItem(('expense_from_index2:'+expensesBranchId),'0')
+    updateTotal()
+  }
+  expensesCloudReady=true
+}
+
+/* ======================
+   Clear
+====================== */
+document.getElementById('clearAll').onclick=()=>{
+  if(confirm('ຢືນຢັນລ້າງຂໍ້ມູນ?')){
+    tbody.innerHTML=''
+    addRow(1)
+    localStorage.removeItem(getKey())
+    updateTotal()
+    save()
+  }
+}
+
+setInterval(()=>loadExpensesCloud(false),5000)
+
+/* ======================
+   WhatsApp (ของเดิม)
+====================== */
+document.getElementById('sendWhatsapp').onclick = () => {
+  let msg = " ລາຍງານຄ່າໃຊ້ຈ່າຍ\n\n";
+
+  msg += "🛒 ລາຍຈ່າຍ (ONLINE)\n";
+
+  document.querySelectorAll('.expenseTable tbody tr').forEach(tr => {
+    const date = tr.querySelector('.date').textContent;
+    const remark = tr.querySelector('.remark').textContent;
+    const amountEl = tr.querySelector('.amount');
+    const amount = amountEl.value ?? amountEl.textContent;
+
+    const staff=tr.querySelector('.expense-staff');
+    const name=staff.value?staff.selectedOptions[0].textContent:'';
+    msg += `-  ${date} | ${name} | ${remark} =  ${amount}\n`;
+  });
+
+  const total = document.querySelector('.totalAmount').textContent;
+  msg += `\n Total: ${total}\n`;
+
+  
+
+  window.open(
+    "https://wa.me/?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+};
+
+
+</script>
+
+<script src="page-menu.js"></script><script src="../language.js"></script><script src="complete-menu.js"></script></body>
+</html>

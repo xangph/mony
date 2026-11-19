@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ປະຫວັດເຕີມ–ຖອນເງີີນເເລະເຄດິດ</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="branch-context.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}body{margin:0;padding:20px;background:#f7faf8;color:#17231e;font-family:'Noto Sans Lao',sans-serif}
+    main{max-width:1100px;margin:auto}a,button,select,input{font:inherit}
+    a,button{display:inline-block;padding:10px 14px;background:#0f7148;color:white;border:0;border-radius:10px;text-decoration:none;cursor:pointer}
+    section{background:white;padding:20px;border:1px solid #dfe6e2;border-radius:16px;margin-top:16px}
+    h1{font-size:24px;margin:0 0 10px}.filters{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+    label{display:grid;gap:6px}select,input{padding:10px;border:1px solid #bfd9cc;border-radius:8px}
+    .table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:12px;text-align:left;border-bottom:1px solid #dfe6e2}
+    th{background:#e8f6ef}td:last-child{text-align:right;white-space:nowrap}.negative{color:#b82e2e}
+    #status{padding:12px 0}#identity{color:#0f7148;font-weight:700}button:disabled{opacity:.5}
+  </style>
+</head>
+<body><main>
+  <a href="../index.html">ກັບ PromoFlow</a>
+  <section>
+    <h1>ປະຫວັດເຕີມ–ຖອນເງີີນເເລະເຄດິດ</h1>
+    <div id="identity"></div>
+    <div class="filters">
+      <label>ປະເພດ<select id="kind"><option value="">ທັງໝົດ</option value="credit_in6">ເຄດິດ</option><option value="credit_out8">ເງິນ</option></select></label>
+      <label>ວັນທີ<input type="date" id="day"></label>
+      <button id="search" type="button">ຄົ້ນຫາ</button>
+    </div>
+    <div id="status" role="status"></div>
+    <div class="table-wrap"><table><thead><tr><th>ວັນເວລາ</th><th>ປະເພດ</th><th>ພະນັກງານ</th><th>ຈຳນວນ</th><th class="admin-action" hidden>ຈັດການ</th></tr></thead><tbody id="entries"></tbody></table></div>
+    <button id="more" hidden type="button" style="margin-top:14px">ໂຫຼດເພີ່ມ</button>
+  </section>
+</main>
+<script>
+const client=supabase.createClient('https://sytvktwgaxokwripenvd.supabase.co','sb_publishable_XILath1IrxTxXfgYMjztbQ_821NXG_j');
+const status=document.getElementById('status');
+const more=document.getElementById('more');
+let branchId,offset=0,busy=false,filterKind='',filterDay='';
+let isAdmin=false;
+async function loadEntries(reset=false){
+  if(busy||!branchId)return;
+  busy=true;
+  document.getElementById('search').disabled=true;
+  more.disabled=true;
+  if(reset){
+    offset=0;
+    filterKind=document.getElementById('kind').value;
+    filterDay=document.getElementById('day').value;
+    document.getElementById('entries').replaceChildren();
+  }
+  status.textContent='ກຳລັງໂຫຼດ…';
+  try{
+    let query=client.from('finance_transfer_entries').select('id,created_at,field_key,staff_name,amount')
+      .eq('branch_id',branchId).order('created_at',{ascending:false}).order('id',{ascending:false});
+    if(filterKind)query=query.eq('field_key',filterKind);
+    if(filterDay){
+      const start=new Date(filterDay+'T00:00:00+07:00');
+      query=query.gte('created_at',start.toISOString()).lt('created_at',new Date(start.getTime()+86400000).toISOString());
+    }
+    const {data,error}=await query.range(offset,offset+99);
+    if(error)throw error;
+    for(const entry of data){
+      const row=document.createElement('tr');
+      const values=[new Date(entry.created_at).toLocaleString('lo-LA',{timeZone:'Asia/Vientiane'}),
+        entry.field_key==='credit_in6'?'ເຄດິດ':'ເງິນ',entry.staff_name,
+        Number(entry.amount).toLocaleString('en-US',{maximumFractionDigits:2})];
+      for(const value of values){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}
+      if(Number(entry.amount)<0)row.lastChild.className='negative';
+      if(isAdmin){
+        const cell=document.createElement('td');
+        const remove=document.createElement('button');
+        remove.textContent='ລຶບ';
+        remove.style.background='#b82e2e';
+        remove.onclick=()=>{
+          cell.replaceChildren();
+          const warning=document.createElement('p');
+          warning.textContent='ລຶບລາຍການ '+values[3]+' ແລະຄິດຍອດສະສົມໃໝ່?';
+          const confirm=document.createElement('button');
+          const cancel=document.createElement('button');
+          confirm.textContent='ຢືນຢັນລຶບ';
+          confirm.style.background='#b82e2e';
+          cancel.textContent='ຍົກເລີກ';
+          cancel.onclick=()=>cell.replaceChildren(remove);
+          confirm.onclick=async()=>{
+            confirm.disabled=true;cancel.disabled=true;
+            try{
+              const {error}=await client.rpc('delete_finance_transfer',{entry_id:entry.id});
+              if(error)throw error;
+              await loadEntries(true);
+            }catch(error){
+              status.textContent='ລຶບບໍ່ສຳເລັດ: '+error.message;
+              confirm.disabled=false;cancel.disabled=false;
+            }
+          };
+          cell.append(warning,confirm,cancel);
+        };
+        cell.append(remove);
+        row.append(cell);
+      }
+      document.getElementById('entries').append(row);
+    }
+    offset+=data.length;
+    more.hidden=data.length<100;
+    status.textContent=offset?'ສະແດງ '+offset+' ລາຍການ':'ຍັງບໍ່ມີປະຫວັດ';
+  }catch(error){status.textContent='ໂຫຼດບໍ່ສຳເລັດ: '+error.message;}
+  finally{busy=false;more.disabled=false;document.getElementById('search').disabled=false;}
+}
+document.getElementById('search').onclick=()=>loadEntries(true);
+more.onclick=()=>loadEntries();
+async function start(){
+  const {data:{session},error}=await client.auth.getSession();
+  if(error)throw error;
+  if(!session){location.replace('../index.html');return;}
+  const {data:profile,error:profileError}=await client.from('profiles').select('role,active,branch_id').eq('id',session.user.id).single();
+  if(profileError)throw profileError;
+  isAdmin=profile.role==='admin';
+  document.querySelector('.admin-action').hidden=!isAdmin;
+  branchId=await resolveFinanceBranch(client,profile);
+  const {data:branch,error:branchError}=await client.from('branches').select('name').eq('id',branchId).single();
+  if(branchError)throw branchError;
+  document.getElementById('identity').textContent=session.user.email+' · '+branch.name;
+  await loadEntries(true);
+}
+start().catch(error=>{status.textContent=error.message;});
+</script><script src="page-menu.js"></script><script src="../language.js"></script><script src="complete-menu.js"></script></body></html>
